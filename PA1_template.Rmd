@@ -1,20 +1,60 @@
+```{r setoptions, echo = TRUE}
+# opts_chunk$set(echo = TRUE, results = "show", cache = TRUE)
+```
+
 # Reproducible Research: Peer Assessment 1
 
-
 ## Loading and preprocessing the data
+### most calculations are performed here
+```{r}
+if(!file.exists("activity.zip")) stop("Cannot find archive activity.zip")
+if(!file.exists("activity.csv")) unzip("activity.zip")
+df <- read.csv("activity.csv", colClasses = c("integer", "Date", "integer"))  # unmodified
+noNA <- df[which(!is.na(df$steps)),]                  # df with na removed
+stepsDaily <- tapply(df$steps, df$date, sum)          # total steps per day
+steps5min <- tapply(noNA$steps,noNA$interval,median)  # total steps per 5 minute interval
+mean5min <- tapply(noNA$steps,noNA$interval,mean)     # mean steps per 5 minute interval
+median5min <- tapply(noNA$steps,noNA$interval,median) # median steps per 5 minute interval
+mean5minAll <- round(mean(mean5min, na.rm=TRUE))      # overall mean for 5 minute intervals
 
-
+```
 
 ## What is mean total number of steps taken per day?
-
-
-
+```{r}
+plot(stepsDaily, type="h", xlab="day", ylab="number of steps")
+print(paste(c("daily steps mean:", round(mean(stepsDaily, na.rm=TRUE)))))
+print(paste(c("daily steps median:", round(median(stepsDaily, na.rm=TRUE)))))
+```
 ## What is the average daily activity pattern?
-
-
+```{r}
+plot(mean5min, type="l", xlab="5 minute intervals", ylab="Number of steps (mean)")
+print(paste(c("5 minute steps mean:", mean5minAll)))
+print(paste(c("5 minute steps median:", round(median(median5min, na.rm=TRUE)))))
+```
 
 ## Imputing missing values
-
+Some rows have missing values, that is, some rows have NA as the value for Steps.
+These are set to the mean value for all 5 minute periods by , for instance by setting those 
+values to the overall mean value for 5-minute periods (i.e. 37).  
+Here we create a second data frame, df2, which does this.
+```{r}
+dfNA <- is.na(df$steps)  # logical vector of NA rows
+df2 <- df
+df2[which(dfNA), "steps"] <- mean5minAll   # set them to the overall 5 minute mean
+df2stepsDaily <- tapply(df2$steps, df2$date, sum)     # total steps per day for second dataset
+```
+## Plot using missing data and calculating the mean and median steps:
+```{r}
+plot(df2stepsDaily, type="h", xlab="day", ylab="number of steps")
+print(paste(c("daily steps mean:", round(mean(df2stepsDaily, na.rm=TRUE)))))
+print(paste(c("daily steps median:", round(median(df2stepsDaily, na.rm=TRUE)))))
+```
+We see a slight decrease in both the mean and median steps per day, (10766 | 10765) and (10766 | 10656).
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
+
+
+
